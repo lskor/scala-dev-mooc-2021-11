@@ -7,9 +7,13 @@ object App {
 
   def main(args: Array[String]): Unit = {
 
-      
-    println(type_system.v1.foo())
+    def doomyFunc(a: String) = {
+      Thread.sleep(1000)
+      println(a)
+    }
 
+    val doomyFuncWithLoggingTime: String => Unit = hof.logRunningTime(doomyFunc)
+      
   }
 
 
