@@ -216,13 +216,27 @@ object hof{
            case Option.Some(v) => f(v)
            case Option.None => Option.None
        }
+
+      def unsafePrintIfAny: Unit = println(this.get)
+
+      def printIfAny: Unit = this match {
+          case Option.Some(v) => println(v)
+          case Option.None => ()
+      }
+
+      def zip[A](v: Option[A]): Option[(T, A)] = this.flatMap(t => v.map((t, _)))
+
+      def filter(f: T => Boolean): Option[T] = this.flatMap(t => if(f(t)) Option.Some(t) else Option.None)
    }
 
    object Option{
         case class Some[T](v: T) extends Option[T]
         case object None extends Option[Nothing]
 
-        def apply[T](v: T): Option[T] = ???
+        def apply[T](v: T): Option[T] = v match {
+            case v if v == null => Option.None
+            case v => Option.Some(v)
+        }
    }
 
 
