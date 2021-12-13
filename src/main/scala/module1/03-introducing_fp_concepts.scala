@@ -224,6 +224,11 @@ object hof{
            case Option.Some(v) => f(v)
            case Option.None => Option.None
        }
+
+       def printIfAny: Unit = this match {
+          case Option.Some(v) => println(v)
+          case Option.None =>
+        }
    }
 
    object Option{
@@ -231,6 +236,8 @@ object hof{
         case object None extends Option[Nothing]
 
         def apply[T](v: T): Option[T] = ???
+
+
    }
 
 
@@ -266,11 +273,17 @@ object hof{
     * Cons - непустой, содердит первый элемент (голову) и хвост (оставшийся список)
     */
 
-    sealed trait List[+T]
+    sealed trait List[+T]{
+
+      def ::[A >: T](elem: A): List[A] = new :: (elem, this)
+    }
 
     case class ::[A](head: A, tail: List[A]) extends List[A]
     case object Nil extends List[Nothing]
 
+    object List {
+      def apply[T](v: T*): List[T] = if (v.isEmpty) Nil else new ::(v.head, apply(v.tail: _*))
+    }
     
 
 

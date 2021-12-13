@@ -90,7 +90,7 @@ object variables {
    */
 
    val x4: Unit = while(cond){
-      1 + 1
+      //1 + 1
    } 
 
    
