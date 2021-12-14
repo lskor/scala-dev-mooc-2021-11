@@ -219,13 +219,26 @@ object hof{
 
       def unsafePrintIfAny: Unit = println(this.get)
 
+      /**
+       *
+       * Реализовать метод printIfAny, который будет печатать значение, если оно есть
+       */
       def printIfAny: Unit = this match {
           case Option.Some(v) => println(v)
           case Option.None => ()
       }
 
+      /**
+       *
+       * Реализовать метод zip, который будет создавать Option от пары значений из 2-х Option
+       */
       def zip[A](v: Option[A]): Option[(T, A)] = this.flatMap(t => v.map((t, _)))
 
+      /**
+       *
+       * Реализовать метод filter, который будет возвращать не пустой Option
+       * в случае если исходный не пуст и предикат от значения = true
+       */
       def filter(f: T => Boolean): Option[T] = this.flatMap(t => if(f(t)) Option.Some(t) else Option.None)
    }
 
@@ -238,29 +251,6 @@ object hof{
             case v => Option.Some(v)
         }
    }
-
-
-
-
-
-  /**
-   *
-   * Реализовать метод printIfAny, который будет печатать значение, если оно есть
-   */
-
-
-  /**
-   *
-   * Реализовать метод zip, который будет создавать Option от пары значений из 2-х Option
-   */
-
-
-  /**
-   *
-   * Реализовать метод filter, который будет возвращать не пустой Option
-   * в случае если исходный не пуст и предикат от значения = true
-   */
-
  }
 
  object list {
@@ -276,8 +266,6 @@ object hof{
 
     case class ::[A](head: A, tail: List[A]) extends List[A]
     case object Nil extends List[Nothing]
-
-    
 
 
     /**
