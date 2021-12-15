@@ -53,4 +53,19 @@ class ListTest
 		assertEquals(List(13.5, 12.5), List(12.5, 13.5).reverse)
 		assertEquals(List("a", "b", "c", "d", "e"), List("e", "d", "c", "b", "a").reverse)
 	}
+
+	@Test
+	def map {
+
+		val multiOne: Int => Int = x => x * 2
+		assertEquals(List(), List().map(multiOne))
+		assertEquals(List(4), List(2).map(multiOne))
+		assertEquals(List(20, 40), List(10, 20).map(multiOne))
+
+		val addWarn: String => String = s => s + ("!")
+		assertEquals(
+			List("one!", "two!", "three!", "four!", "five!"),
+			List("one", "two", "three", "four", "five").map(addWarn)
+		)
+	}
 }

@@ -302,7 +302,22 @@ object hof{
 
            loop(this, Nil)
        }
-    }
+
+       /**
+        *
+        * Реализовать метод map для списка который будет применять некую ф-цию к элементам данного списка
+        */
+       def map[B](f: T => B): List[B] = {
+
+           @tailrec
+           def loop(list: List[T], accum: List[B]): List[B] = list match {
+               case Nil => accum
+               case ::(head, tail) => loop(tail, accum.cons(f(head)))
+           }
+
+           loop(this, Nil).reverse
+       }
+   }
 
     case class ::[A](head: A, tail: List[A]) extends List[A]
     case object Nil extends List[Nothing]
@@ -320,12 +335,6 @@ object hof{
             else ::(elems.head, apply(elems.tail: _*))
         }
     }
-
-    /**
-      *
-      * Реализовать метод map для списка который будет применять некую ф-цию к элементам данного списка
-      */
-
 
     /**
       *
