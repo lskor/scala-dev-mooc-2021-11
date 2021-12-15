@@ -287,6 +287,21 @@ object hof{
 
            loop(this, "")
        }
+
+       /**
+        *
+        * Реализовать метод reverse который позволит заменить порядок элементов в списке на противоположный
+        */
+       def reverse: List[T] = {
+
+           @tailrec
+           def loop(list: List[T], accum: List[T]): List[T] = list match {
+               case Nil => accum
+               case ::(head, tail) => loop(tail, accum.cons(head))
+           }
+
+           loop(this, Nil)
+       }
     }
 
     case class ::[A](head: A, tail: List[A]) extends List[A]
@@ -305,11 +320,6 @@ object hof{
             else ::(elems.head, apply(elems.tail: _*))
         }
     }
-
-    /**
-      *
-      * Реализовать метод reverse который позволит заменить порядок элементов в списке на противоположный
-      */
 
     /**
       *

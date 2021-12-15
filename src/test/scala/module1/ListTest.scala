@@ -44,4 +44,13 @@ class ListTest
 		val list = List("id", "name", "document", "uuid")
 		assertEquals("id|name|document|uuid", list.mkString("|"))
 	}
+
+	@Test
+	def reverse {
+
+		assertEquals(List(), List().reverse)
+		assertEquals(List(1), List(1).reverse)
+		assertEquals(List(13.5, 12.5), List(12.5, 13.5).reverse)
+		assertEquals(List("a", "b", "c", "d", "e"), List("e", "d", "c", "b", "a").reverse)
+	}
 }
