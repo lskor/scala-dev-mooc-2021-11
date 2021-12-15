@@ -263,6 +263,9 @@ object hof{
     */
 
     sealed trait List[+T] {
+
+       override def toString: String = s"List(${this.mkString(", ")})"
+
        /**
         * Метод cons, добавляет элемент в голову списка, для этого метода можно воспользоваться названием `::`
         *
