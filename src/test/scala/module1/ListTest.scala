@@ -1,0 +1,104 @@
+package module1
+
+import module1.list._
+import org.junit.Assert.assertEquals
+import org.junit.Test
+
+class ListTest
+{
+	@Test
+	def apply
+	{
+
+		assertEquals(Nil, List())
+
+		val one = ::(1, Nil)
+		assertEquals(one, List(1))
+
+		val two = ::(1, ::(2, Nil))
+		assertEquals(two, List(1, 2))
+
+		val three = ::(1, ::(2, ::(3, Nil)))
+		assertEquals(three, List(1, 2, 3))
+
+		val four = ::("1", ::("2", ::("3", ::("4", Nil))))
+		assertEquals(four, List("1", "2", "3", "4"))
+	}
+
+	@Test
+	def cons
+	{
+
+		assertEquals(List("a"), List().cons("a"))
+		assertEquals(List("a", "b"), List("b").cons("a"))
+		assertEquals(List("d", "a", "b", "c"), List("a", "b", "c").cons("d"))
+	}
+
+	@Test
+	def mkString()
+	{
+
+		val comma = ", "
+		assertEquals("", List().mkString(comma))
+		assertEquals("1", List(1).mkString(comma))
+		assertEquals("1, 2", List(1, 2).mkString(comma))
+		assertEquals("1, 2, 3, 4, 5", List(1, 2, 3, 4, 5).mkString(comma))
+
+		val list = List("id", "name", "document", "uuid")
+		assertEquals("id|name|document|uuid", list.mkString("|"))
+	}
+
+	@Test
+	def reverse
+	{
+
+		assertEquals(List(), List().reverse)
+		assertEquals(List(1), List(1).reverse)
+		assertEquals(List(13.5, 12.5), List(12.5, 13.5).reverse)
+		assertEquals(List("a", "b", "c", "d", "e"), List("e", "d", "c", "b", "a").reverse)
+	}
+
+	@Test
+	def map
+	{
+
+		val multiOne: Int => Int = x => x * 2
+		assertEquals(List(), List().map(multiOne))
+		assertEquals(List(4), List(2).map(multiOne))
+		assertEquals(List(20, 40), List(10, 20).map(multiOne))
+
+		val addWarn: String => String = s => s + ("!")
+		assertEquals(
+			List("one!", "two!", "three!", "four!", "five!"),
+			List("one", "two", "three", "four", "five").map(addWarn)
+		)
+	}
+
+	@Test
+	def filter
+	{
+		val predicate: Int => Boolean = t => (t % 2) == 0
+
+		assertEquals(List(), List().filter(predicate))
+		assertEquals(List(), List(1).filter(predicate))
+		assertEquals(List(2), List(1, 2).filter(predicate))
+		assertEquals(List(2), List(1, 2, 3).filter(predicate))
+		assertEquals(List(2, 4), List(1, 2, 3, 4).filter(predicate))
+	}
+
+	@Test
+	def funcIncList {
+
+		assertEquals(List(), incList(List()))
+		assertEquals(List(2), incList(List(1)))
+		assertEquals(List(2, 3, 4, 5, 6), incList(List(1, 2, 3, 4, 5)))
+	}
+
+	@Test
+	def funcShoutString {
+
+		assertEquals(List(), shoutString(List()))
+		assertEquals(List("!one"), shoutString(List("one")))
+		assertEquals(List("!one", "!two", "!three"), shoutString(List("one", "two", "three")))
+	}
+}
