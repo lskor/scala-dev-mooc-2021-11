@@ -7,7 +7,8 @@ import org.junit.Test
 class ListTest
 {
 	@Test
-	def apply {
+	def apply
+	{
 
 		assertEquals(Nil, List())
 
@@ -25,7 +26,8 @@ class ListTest
 	}
 
 	@Test
-	def cons {
+	def cons
+	{
 
 		assertEquals(List("a"), List().cons("a"))
 		assertEquals(List("a", "b"), List("b").cons("a"))
@@ -33,7 +35,8 @@ class ListTest
 	}
 
 	@Test
-	def mkString() {
+	def mkString()
+	{
 
 		val comma = ", "
 		assertEquals("", List().mkString(comma))
@@ -46,7 +49,8 @@ class ListTest
 	}
 
 	@Test
-	def reverse {
+	def reverse
+	{
 
 		assertEquals(List(), List().reverse)
 		assertEquals(List(1), List(1).reverse)
@@ -55,7 +59,8 @@ class ListTest
 	}
 
 	@Test
-	def map {
+	def map
+	{
 
 		val multiOne: Int => Int = x => x * 2
 		assertEquals(List(), List().map(multiOne))
@@ -67,5 +72,17 @@ class ListTest
 			List("one!", "two!", "three!", "four!", "five!"),
 			List("one", "two", "three", "four", "five").map(addWarn)
 		)
+	}
+
+	@Test
+	def filter
+	{
+		val predicate: Int => Boolean = t => (t % 2) == 0
+
+		assertEquals(List(), List().filter(predicate))
+		assertEquals(List(), List(1).filter(predicate))
+		assertEquals(List(2), List(1, 2).filter(predicate))
+		assertEquals(List(2), List(1, 2, 3).filter(predicate))
+		assertEquals(List(2, 4), List(1, 2, 3, 4).filter(predicate))
 	}
 }

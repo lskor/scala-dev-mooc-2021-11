@@ -317,6 +317,22 @@ object hof{
 
            loop(this, Nil).reverse
        }
+
+       /**
+        *
+        * Реализовать метод filter для списка который будет фильтровать список по некому условию
+        */
+       def filter(f: T => Boolean): List[T] = {
+
+           @tailrec
+           def loop(list: List[T], accum: List[T]): List[T] = list match {
+               case Nil => accum
+               case ::(head, tail) if f(head) => loop(tail, accum.cons(head))
+               case ::(_, tail) => loop(tail, accum)
+           }
+
+           loop(this, Nil).reverse
+       }
    }
 
     case class ::[A](head: A, tail: List[A]) extends List[A]
@@ -335,11 +351,6 @@ object hof{
             else ::(elems.head, apply(elems.tail: _*))
         }
     }
-
-    /**
-      *
-      * Реализовать метод filter для списка который будет фильтровать список по некому условию
-      */
 
     /**
       *
