@@ -23,4 +23,25 @@ class ListTest
 		val four = ::("1", ::("2", ::("3", ::("4", Nil))))
 		assertEquals(four, List("1", "2", "3", "4"))
 	}
+
+	@Test
+	def cons {
+
+		assertEquals(List("a"), List().cons("a"))
+		assertEquals(List("a", "b"), List("b").cons("a"))
+		assertEquals(List("d", "a", "b", "c"), List("a", "b", "c").cons("d"))
+	}
+
+	@Test
+	def mkString() {
+
+		val comma = ", "
+		assertEquals("", List().mkString(comma))
+		assertEquals("1", List(1).mkString(comma))
+		assertEquals("1, 2", List(1, 2).mkString(comma))
+		assertEquals("1, 2, 3, 4, 5", List(1, 2, 3, 4, 5).mkString(comma))
+
+		val list = List("id", "name", "document", "uuid")
+		assertEquals("id|name|document|uuid", list.mkString("|"))
+	}
 }

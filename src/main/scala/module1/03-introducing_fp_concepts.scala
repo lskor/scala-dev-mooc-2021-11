@@ -262,7 +262,29 @@ object hof{
     * Cons - непустой, содердит первый элемент (голову) и хвост (оставшийся список)
     */
 
-    sealed trait List[+T]
+    sealed trait List[+T] {
+       /**
+        * Метод cons, добавляет элемент в голову списка, для этого метода можно воспользоваться названием `::`
+        *
+        */
+       def cons[A >:T](elem:A): List[A] = ::(elem, this)
+
+       /**
+        * Метод mkString возвращает строковое представление списка, с учетом переданного разделителя
+        *
+        */
+       def mkString(separator: String): String = {
+
+           @tailrec
+           def loop(list: List[T], accum: String): String = list match {
+               case Nil => accum
+               case ::(head, Nil) => accum + head
+               case ::(head, tail) => loop(tail, accum + head + separator)
+           }
+
+           loop(this, "")
+       }
+    }
 
     case class ::[A](head: A, tail: List[A]) extends List[A]
     case object Nil extends List[Nothing]
@@ -280,16 +302,6 @@ object hof{
             else ::(elems.head, apply(elems.tail: _*))
         }
     }
-
-    /**
-     * Метод cons, добавляет элемент в голову списка, для этого метода можно воспользоваться названием `::`
-     *
-     */
-
-    /**
-      * Метод mkString возвращает строковое представление списка, с учетом переданного разделителя
-      *
-      */
 
     /**
       *
