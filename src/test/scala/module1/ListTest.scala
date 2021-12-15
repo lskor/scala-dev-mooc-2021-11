@@ -85,4 +85,20 @@ class ListTest
 		assertEquals(List(2), List(1, 2, 3).filter(predicate))
 		assertEquals(List(2, 4), List(1, 2, 3, 4).filter(predicate))
 	}
+
+	@Test
+	def funcIncList {
+
+		assertEquals(List(), incList(List()))
+		assertEquals(List(2), incList(List(1)))
+		assertEquals(List(2, 3, 4, 5, 6), incList(List(1, 2, 3, 4, 5)))
+	}
+
+	@Test
+	def funcShoutString {
+
+		assertEquals(List(), shoutString(List()))
+		assertEquals(List("!one"), shoutString(List("one")))
+		assertEquals(List("!one", "!two", "!three"), shoutString(List("one", "two", "three")))
+	}
 }
