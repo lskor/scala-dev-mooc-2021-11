@@ -1,4 +1,4 @@
-val seq = Seq(1, 2, 3) // seq: Seq
+import scala.util.matching.Regex
+val isCyrillic = "['\\p{IsCyrillic}]*".r
 
-seq.isInstanceOf[Seq[Int]]
-seq.isInstanceOf[Seq[String]]
+isCyrillic.matches("Hello")
