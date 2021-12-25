@@ -24,9 +24,14 @@ class check_collections_task extends AnyFlatSpec {
   }
 
   "check intersectionAuto" should "ok" in {
+    //Is it union or intersection?
     val dealerOne = Vector(Auto("BMW", "i3"), Auto("Mazda", "X5"))
     val dealerTwo = Seq(Auto("BMW", "i3"), Auto("Mazda", "X5"))
     assert(intersectionAuto(dealerOne, dealerTwo) === Set(Auto("BMW", "i3"), Auto("Mazda", "X5")))
+
+    // Test for union:
+    val dealerOneSecond = Seq(Auto("BMW", "i3"), Auto("Mazda", "X5"), Auto("VW", "Polo"), Auto("Mazda", "X5"))
+    assert(intersectionAuto(dealerOneSecond, dealerTwo) === Set(Auto("BMW", "i3"), Auto("Mazda", "X5"), Auto("VW", "Polo")))
   }
 
   "check filterAllLeftDealerAutoWithoutRight" should "ok" in {
