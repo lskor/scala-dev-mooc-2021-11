@@ -16,7 +16,11 @@ class check_collections_task extends AnyFlatSpec {
     val transformText = "Hello. I am ten years old"
     assert(numbersToNumericString(text) === transformText)
     assert(numbersToNumericString("") === "")
+    assert(numbersToNumericString("1 and 1") === "one and one")
     assert(numbersToNumericString("4") === "four")
+    assert(numbersToNumericString("The game's score was 2:0") === "The game's score was two:zero")
+    assert(numbersToNumericString("q2w3e4r5t6y") === "qtwowthreeefourrfivetsixy")
+    assert(numbersToNumericString("The 20th May") === "The twozeroth May")
   }
 
   "check intersectionAuto" should "ok" in {

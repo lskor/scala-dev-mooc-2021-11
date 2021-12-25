@@ -1,5 +1,7 @@
 package collections
 
+import scala.annotation.tailrec
+
 object task_collections {
 
   def isASCIIString(str: String): Boolean = str.matches("[A-Za-z]+")
@@ -43,8 +45,17 @@ object task_collections {
    *
    * HINT: Для всех возможных комбинаций чисел стоит использовать Map
    * **/
+
+  val mapNumbers = Map(
+    "10" -> "ten", "0"-> "zero", "1" -> "one", "2" -> "two", "3" -> "three", "4" -> "four",
+    "5" -> "five", "6" -> "six", "7" -> "seven", "8" -> "eight", "9" -> "nine")
+
   def numbersToNumericString(text: String): String = {
-    ""
+
+    mapNumbers.foldLeft(text) {
+      case(accum, (num, str)) => accum.replaceAll(num, str)
+    }
+
   }
 
   /**
