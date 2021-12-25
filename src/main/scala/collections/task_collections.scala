@@ -15,9 +15,24 @@ object task_collections {
    * HINT: Тут удобно использовать collect и zipWithIndex
    *
    * **/
-  def capitalizeIgnoringASCII(text: List[String]): List[String] = {
-    List.empty
+  val upperCaseASCIIString: PartialFunction[(String, Int), String] = new PartialFunction[(String, Int), String] {
+    override def isDefinedAt(x: (String, Int)): Boolean = isASCIIString(x._1)
+    override def apply(v1: (String, Int)): String = v1._1.toUpperCase
   }
+
+  val lowerCaseNoASCIIString: PartialFunction[(String, Int), String] = new PartialFunction[(String, Int), String] {
+    override def isDefinedAt(x: (String, Int)): Boolean = !isASCIIString(x._1)
+    override def apply(v1: (String, Int)): String = v1._1.toLowerCase
+  }
+
+  val skipFirstElem: PartialFunction[(String, Int), String] = new PartialFunction[(String, Int), String] {
+    override def isDefinedAt(x: (String, Int)): Boolean = x._2 == 0
+    override def apply(v1: (String, Int)): String = v1._1
+  }
+
+  def capitalizeIgnoringASCII(text: List[String]): List[String] = {
+    text.zipWithIndex.collect(skipFirstElem orElse upperCaseASCIIString orElse lowerCaseNoASCIIString)
+}
 
   /**
    *

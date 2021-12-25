@@ -8,6 +8,7 @@ class check_collections_task extends AnyFlatSpec {
   "check capitalizeIgnoringASCII" should "ok" in  {
     assert(capitalizeIgnoringASCII(List("Lorem", "ipsum", "dolor", "sit", "amet")) == List("Lorem", "IPSUM", "DOLOR", "SIT", "AMET"))
     assert(capitalizeIgnoringASCII(List("Оказывается", ",", "ЗвУк", "КЛАВИШЬ")) === List("Оказывается", ",", "звук", "клавишь"))
+    assert(capitalizeIgnoringASCII(List("Оказывается", "aLert", "ЗвУк", "КЛАВИШЬ")) === List("Оказывается", "ALERT", "звук", "клавишь"))
   }
 
   "check numbersToNumericString" should "ok" in {
