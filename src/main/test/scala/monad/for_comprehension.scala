@@ -16,6 +16,11 @@ class for_comprehension extends AnyFlatSpec {
     assert(Wrap.empty[Int].flatMap(_ => EmptyWrap) === EmptyWrap)
   }
 
+  "check correct withFilter" should "ok" in  {
+    assert(NonEmptyWrap(10).withFilter(_%2 == 0) === NonEmptyWrap(10))
+    assert(NonEmptyWrap(5).withFilter(_%2 == 0) === EmptyWrap)
+  }
+
   "check correct pure" should "ok" in  {
     assert(EmptyWrap === Wrap.empty)
   }

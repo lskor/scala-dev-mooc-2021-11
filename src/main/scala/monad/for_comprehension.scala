@@ -1,6 +1,6 @@
 package monad
 
-object for_comprehension {
+object App {
 
   def main(args: Array[String]): Unit = {
     val result: Wrap[Int] = NonEmptyWrap(10)
