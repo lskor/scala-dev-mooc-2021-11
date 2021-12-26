@@ -82,6 +82,13 @@ object task_collections {
    * и вернёт уникальный список машин обслуживающихся в первом дилерском центре и не обслуживающимся во втором
    **/
   def filterAllLeftDealerAutoWithoutRight(dealerOne: Iterable[Auto], dealerTwo: Iterable[Auto]): Iterable[Auto] = {
-    Iterable.empty
+    //dealerOne.foldLeft(Set.empty[Auto])((accum, car) => if(dealerTwo.exists(_ == car)) accum else accum + car)
+    val result = for {
+      carDealerOne <- dealerOne
+      if !dealerTwo.exists(_ == carDealerOne)
+    }
+    yield carDealerOne
+
+    result.toSet
   }
 }
