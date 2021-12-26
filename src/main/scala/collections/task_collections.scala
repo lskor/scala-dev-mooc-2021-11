@@ -1,5 +1,7 @@
 package collections
 
+import scala.annotation.tailrec
+
 object task_collections {
 
   def isASCIIString(str: String): Boolean = str.matches("[A-Za-z]+")
@@ -15,9 +17,24 @@ object task_collections {
    * HINT: Тут удобно использовать collect и zipWithIndex
    *
    * **/
-  def capitalizeIgnoringASCII(text: List[String]): List[String] = {
-    List.empty
+  val upperCaseASCIIString: PartialFunction[(String, Int), String] = new PartialFunction[(String, Int), String] {
+    override def isDefinedAt(x: (String, Int)): Boolean = isASCIIString(x._1)
+    override def apply(v1: (String, Int)): String = v1._1.toUpperCase
   }
+
+  val lowerCaseNoASCIIString: PartialFunction[(String, Int), String] = new PartialFunction[(String, Int), String] {
+    override def isDefinedAt(x: (String, Int)): Boolean = !isASCIIString(x._1)
+    override def apply(v1: (String, Int)): String = v1._1.toLowerCase
+  }
+
+  val skipFirstElem: PartialFunction[(String, Int), String] = new PartialFunction[(String, Int), String] {
+    override def isDefinedAt(x: (String, Int)): Boolean = x._2 == 0
+    override def apply(v1: (String, Int)): String = v1._1
+  }
+
+  def capitalizeIgnoringASCII(text: List[String]): List[String] = {
+    text.zipWithIndex.collect(skipFirstElem orElse upperCaseASCIIString orElse lowerCaseNoASCIIString)
+}
 
   /**
    *
@@ -28,8 +45,17 @@ object task_collections {
    *
    * HINT: Для всех возможных комбинаций чисел стоит использовать Map
    * **/
+
+  val mapNumbers = Map(
+    "10" -> "ten", "0"-> "zero", "1" -> "one", "2" -> "two", "3" -> "three", "4" -> "four",
+    "5" -> "five", "6" -> "six", "7" -> "seven", "8" -> "eight", "9" -> "nine")
+
   def numbersToNumericString(text: String): String = {
-    ""
+
+    mapNumbers.foldLeft(text) {
+      case(accum, (num, str)) => accum.replaceAll(num, str)
+    }
+
   }
 
   /**
@@ -47,7 +73,7 @@ object task_collections {
    * Реализуйте метод который примет две коллекции (два источника) и вернёт объединенный список уникальный значений
    **/
   def intersectionAuto(dealerOne: Iterable[Auto], dealerTwo: Iterable[Auto]): Iterable[Auto] = {
-    Iterable.empty
+    (dealerOne ++ dealerTwo).toSet
   }
 
   /**
@@ -56,6 +82,13 @@ object task_collections {
    * и вернёт уникальный список машин обслуживающихся в первом дилерском центре и не обслуживающимся во втором
    **/
   def filterAllLeftDealerAutoWithoutRight(dealerOne: Iterable[Auto], dealerTwo: Iterable[Auto]): Iterable[Auto] = {
-    Iterable.empty
+    //dealerOne.foldLeft(Set.empty[Auto])((accum, car) => if(dealerTwo.exists(_ == car)) accum else accum + car)
+    val result = for {
+      carDealerOne <- dealerOne
+      if !dealerTwo.exists(_ == carDealerOne)
+    }
+    yield carDealerOne
+
+    result.toSet
   }
 }
