@@ -1,5 +1,6 @@
 package futures
 
+import futures.task_futures_sequence._
 import org.scalatest.flatspec.AnyFlatSpec
 
 import java.util.concurrent.atomic.AtomicInteger
