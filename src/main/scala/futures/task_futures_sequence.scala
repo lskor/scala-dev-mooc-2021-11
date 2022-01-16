@@ -2,7 +2,9 @@ package futures
 
 import HomeworksUtils.TaskSyntax
 
+import scala.List
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 object task_futures_sequence {
 
@@ -20,6 +22,14 @@ object task_futures_sequence {
    * @return асинхронную задачу с кортежом из двух списков
    */
   def fullSequence[A](futures: List[Future[A]])
-                     (implicit ex: ExecutionContext): Future[(List[A], List[Throwable])] =
-    task"Реализуйте метод `fullSequence`"()
+                     (implicit ex: ExecutionContext): Future[(List[A], List[Throwable])] = {
+
+    futures.foldLeft(Future.successful(List[A](), List[Throwable]())) {
+      (result, future) => result.flatMap {
+        case (sList, tList) =>
+          future.map(a => (sList :+ a, tList))
+                .recover { case throwable: Throwable => (sList, tList :+ throwable) }
+      }
+    }
+  }
 }
