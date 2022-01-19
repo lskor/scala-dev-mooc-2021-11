@@ -87,7 +87,7 @@ object type_classes {
   max2(5, 10)
   max2("ab", "abc")
 
-  val result = List("a", "b", "c").filter(str => str === 1)
+  //val result = List("a", "b", "c").filter(str => str === 1)
 
   trait Eq[T] {
     def ===(a: T, b: T): Boolean
