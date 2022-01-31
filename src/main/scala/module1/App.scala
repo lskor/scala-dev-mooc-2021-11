@@ -6,6 +6,7 @@ import zio.ExitCode
 import zio.URIO
 import zio.ZEnv
 import zio.ZIO
+import module3.zioConcurrency
 
 object App {
 
@@ -17,7 +18,6 @@ object App {
 
 object ZioApp extends zio.App{
   def run(args: List[String]): URIO[ZEnv, ExitCode] = {
-    zioRecursion.factorialZ(5)
-      .flatMap(v => zio.console.putStrLn(v.toString())).exitCode
+    zioConcurrency.printEffectRunningTime(zioConcurrency.app3).exitCode
   }
 }
