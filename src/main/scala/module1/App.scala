@@ -7,11 +7,12 @@ import zio.URIO
 import zio.ZEnv
 import zio.ZIO
 import module3.zioConcurrency
+import module3.di
 
 object App {
 
   def main(args: Array[String]): Unit = {
-    zio.Runtime.default.unsafeRun(multipleErrors.app)
+    zio.Runtime.default.unsafeRun(???)
   }
 
 }
