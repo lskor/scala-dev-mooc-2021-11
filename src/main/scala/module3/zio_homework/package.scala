@@ -1,17 +1,41 @@
 package module3
 
-import scala.language.postfixOps
+import zio._
+import zio.console.Console
+import zio.random.Random
 
 package object zio_homework {
+
+  type InteractionEnv = Random with Console
+
+  def getConsole: ZIO[Console, Nothing, Console.Service] = ZIO.environment[Console].map(_.get)
+  def getRandom: ZIO[Random, Nothing, Random.Service] = ZIO.environment[Random].map(_.get)
+
   /**
    * 1.
    * Используя сервисы Random и Console, напишите консольную ZIO программу которая будет предлагать пользователю угадать число от 1 до 3
-   * и печатать в когнсоль угадал или нет. Подумайте, на какие наиболее простые эффекты ее можно декомпозировать.
+   * и печатать в консоль угадал или нет. Подумайте, на какие наиболее простые эффекты её можно декомпозировать.
    */
 
+  def printLine(console: Console.Service, line: String): Task[Unit] = console.putStrLn(line)
+  def randomFrom1To3(random: Random.Service): Task[Int] = random.nextIntBetween(1, 3)
+  def readLine(console: Console.Service): Task[String] = console.getStrLn
+  def readInt(line: String): Task[Int] = ZIO.effect(line.toInt)
 
-
-  lazy val guessProgram = ???
+  lazy val guessProgram: ZIO[InteractionEnv, Throwable, Unit] = for {
+      console <- getConsole
+      random <- getRandom
+      thinkingNumber <- randomFrom1To3(random)
+      _ <- printLine(console,"Let's play!")
+      _ <- printLine(console,"I'm thinking of a number between 1 and 3. Guess it!")
+      _ <- printLine(console, s"So, this number is...")
+      _ <- readLine(console)
+            .flatMap(readInt)
+            .withFilter(_ == thinkingNumber)
+            .*> (printLine(console, "You are win!")) // ToDo: возможно, есть более подходящий метод
+            .orElse(printLine(console, s"O, no! You are wrong. My number is $thinkingNumber!"))
+    }
+    yield ()
 
   /**
    * 2. реализовать функцию doWhile (общего назначения), которая будет выполнять эффект до тех пор, пока его значение в условии не даст true
