@@ -1,15 +1,5 @@
 package module3
 
-import zio.{Has, Task, ULayer, ZIO, ZLayer}
-import zio.clock.{Clock, sleep}
-import zio.console._
-import zio.duration.durationInt
-import zio.macros.accessible
-import zio.random._
-
-import java.io.IOException
-import java.util.concurrent.TimeUnit
-import scala.io.StdIn
 import scala.language.postfixOps
 
 package object zio_homework {
