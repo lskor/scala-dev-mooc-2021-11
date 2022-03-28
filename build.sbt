@@ -14,9 +14,14 @@ lazy val root = (project in file("."))
     libraryDependencies ++= Dependencies.http4sServer,
     libraryDependencies ++= Dependencies.circe,
     libraryDependencies ++= Seq(
+      "io.getquill"          %% "quill-jdbc-zio" % "3.12.0",
+      "io.github.kitlangton" %% "zio-magic"      % "0.3.11",
+      "org.postgresql"       %  "postgresql"     % "42.3.1"
+    ),
+    libraryDependencies ++= Seq(
       kindProjector,
       liquibase,
-      postgres
+      logback
     ),
 
     addCompilerPlugin(Dependencies.kindProjector)

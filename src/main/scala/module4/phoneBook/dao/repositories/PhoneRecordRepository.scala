@@ -1,92 +1,92 @@
 package module4.phoneBook.dao.repositories
 
-import module4.phoneBook.db.DBTransactor
+import module4.phoneBook.db
 import zio.Has
 import module4.phoneBook.dao.entities._
-import doobie.quill.DoobieContext
 import io.getquill.CompositeNamingStrategy2
 import io.getquill.Escape
 import io.getquill.Literal
 import zio.ZLayer
 import zio.ULayer
+import zio.Task
+import io.getquill.context.ZioJdbc._
+import io.getquill.Ord
 
 object PhoneRecordRepository {
-  val dc: DoobieContext.Postgres[CompositeNamingStrategy2[Escape.type, Literal.type]] = DBTransactor.doobieContext
-  import dc._
+  val ctx = db.Ctx
+  import ctx._
 
   type PhoneRecordRepository = Has[Service]
 
   trait Service{
-      def find(phone: String): Result[Option[PhoneRecord]]
-      def list(): Result[List[PhoneRecord]]
-      def insert(phoneRecord: PhoneRecord): Result[Unit]
-      def update(phoneRecord: PhoneRecord): Result[Unit]
-      def delete(id: String): Result[Unit]
+      def find(phone: String): QIO[Option[PhoneRecord]]
+      def list(): QIO[List[PhoneRecord]]
+      def insert(phoneRecord: PhoneRecord): QIO[Unit]
+      def update(phoneRecord: PhoneRecord): QIO[Unit]
+      def delete(id: String): QIO[Unit]
   }
 
   class Impl extends Service{
+     
+     val phoneRecordSchema = quote{
+       querySchema[PhoneRecord](""""PhoneRecord"""")
+     }
 
-    val phoneRecordSchema = quote{
-      querySchema[PhoneRecord](""""PhoneRecord"""")
-    }
+     val addressSchema = quote{
+       querySchema[Address](""""Address"""")
+     }
 
-    val addressSchema = quote{
-      querySchema[Address](""""Address"""")
-    }
-
-    def find(phone: String): Result[Option[PhoneRecord]] = dc.run(
-      phoneRecordSchema.filter(r => r.phone == lift(phone))
-    ).map(_.headOption) // SELECT "r"."id", "r"."phone", "r"."fio", "r"."addressId" FROM "PhoneRecord" "r" WHERE "r"."phone" = ?
+    def find(phone: String): QIO[Option[PhoneRecord]] = 
+      ctx.run(phoneRecordSchema.filter(_.phone == lift(phone)))
+      .map(_.headOption)
     
-    def list(): Result[List[PhoneRecord]] = dc.run(phoneRecordSchema) // SELECT "x"."id", "x"."phone", "x"."fio", "x"."addressId" FROM "PhoneRecord" "x"
+    def list(): QIO[List[PhoneRecord]] = ctx.run(phoneRecordSchema)
     
-    def insert(phoneRecord: PhoneRecord): Result[Unit] = 
-      dc.run(phoneRecordSchema.insert(lift(phoneRecord))).map(_ => ())
+    def insert(phoneRecord: PhoneRecord): QIO[Unit] = 
+      ctx.run(phoneRecordSchema.insert(lift(phoneRecord))).unit
     
-    def update(phoneRecord: PhoneRecord): Result[Unit] = 
-      dc.run(phoneRecordSchema.filter(_.id == lift(phoneRecord.id)).update(lift(phoneRecord))).map(_ => ()) // UPDATE "PhoneRecord" SET "id" = ?, "phone" = ?, "fio" = ?, "addressId" = ? WHERE "id" = ?
+    def update(phoneRecord: PhoneRecord): QIO[Unit] = 
+      ctx.run(phoneRecordSchema.filter(_.id == lift(phoneRecord.id))
+      .update(lift(phoneRecord))).unit
     
-    def delete(id: String): Result[Unit] = 
-      dc.run(phoneRecordSchema.filter(_.id == lift(id)).delete).map(_ => ()) // DELETE FROM "PhoneRecord" WHERE "id" = ?
+    def delete(id: String): QIO[Unit] = 
+      ctx.run(phoneRecordSchema.filter(_.id == lift(id))
+      .delete).unit
 
-    // implicit join
-    def listWithAddress() = dc.run(
-      for{
-        phoneRecord <- phoneRecordSchema
-        address <- addressSchema if(phoneRecord.addressId == address.id)
-      } yield (phoneRecord, address)
-    ) // SELECT "phoneRecord"."id", "phoneRecord"."phone", "phoneRecord"."fio", "phoneRecord"."addressId", "address"."id", "address"."zipCode", "address"."streetAddress" FROM "PhoneRecord" "phoneRecord", "Address" "address" WHERE "phoneRecord"."addressId" = "address"."id"
+      // implicit join
 
-    // applicative join
-    def listWithAddress2() = dc.run(
-      phoneRecordSchema.join(addressSchema).on(_.addressId == _.id).filter( r => r._1.phone == lift("123456"))
-    ) // SELECT "x7"."id", "x7"."phone", "x7"."fio", "x7"."addressId", "x8"."id", "x8"."zipCode", "x8"."streetAddress" FROM "PhoneRecord" "x7" INNER JOIN "Address" "x8" ON "x7"."addressId" = "x8"."id" 
+      def listWithAddress() = ctx.run(
+        for{
+           phoneRecord <- phoneRecordSchema
+           address <- addressSchema if (phoneRecord.addressId == address.id)
+        } yield (phoneRecord, address)
+      )
 
+      // applicative join
+      def listWithAddress2() = ctx.run(
+        phoneRecordSchema
+        .join(addressSchema)
+        .on(_.addressId == _.id)
+        .filter(v => v._1.phone == lift(""))
+      )
+
+      // flat join
+      def listWithAddress3() = ctx.run(
+        for{   
+          phoneRecord <- phoneRecordSchema
+          address <- addressSchema.join(_.id == phoneRecord.addressId)
+        } yield (phoneRecord, address)
+      )
+
+      private val q = quote(phoneRecordSchema.filter(_.phone == lift("1234")))
+
+      def count = ctx.run(q.size)
+
+      def paged = ctx.run(q.take(5).drop(20).sortBy(_.fio)(Ord.asc))
     
-    // flat join
-    def listWithAddress3() = dc.run(
-      for{
-        phoneRecord <- phoneRecordSchema
-        address <- addressSchema.join(_.id == phoneRecord.addressId)
-      } yield (phoneRecord, address)
-    ) // SELECT "phoneRecord"."id", "phoneRecord"."phone", "phoneRecord"."fio", "phoneRecord"."addressId", "x9"."id", "x9"."zipCode", "x9"."streetAddress" FROM "PhoneRecord" "phoneRecord" INNER JOIN "Address" "x9" ON "x9"."id" = "phoneRecord"."addressId"
-
-    // pagination
-    private val query = quote(
-      for{
-        phoneRecord <- phoneRecordSchema
-        address <- addressSchema.join(_.id == phoneRecord.addressId)
-      } yield (phoneRecord, address)
-    )
-
-    def listPaged(pageSize: Int, pageNumber: Int) = dc.run(query.drop(lift(pageSize)).take(lift(pageSize * (pageNumber - 1))))
-    // SELECT "x10"."_1id", "x10"."_1phone", "x10"."_1fio", "x10"."_1addressId", "x10"."_2id", "x10"."_2zipCode", "x10"."_2streetAddress" FROM (SELECT "phoneRecord"."id" AS _1"id", "phoneRecord"."phone" AS _1"phone", "phoneRecord"."fio" AS _1"fio", "phoneRecord"."addressId" AS _1"addressId", "x10"."id" AS _2"id", "x10"."zipCode" AS _2"zipCode", "x10"."streetAddress" AS _2"streetAddress" FROM "PhoneRecord" "phoneRecord" INNER JOIN "Address" "x10" ON "x10"."id" = "phoneRecord"."addressId") AS "x10" LIMIT ? OFFSET ?
-
-    def count() = dc.run(query.size)
-
-    def sorted() = dc.run(query.sortBy(_._1.fio))
-
   }
 
-  val live: ULayer[PhoneRecordRepository] = ZLayer.succeed(new Impl())
+ 
+
+  val live: ULayer[PhoneRecordRepository] = ZLayer.succeed(new Impl)
 }

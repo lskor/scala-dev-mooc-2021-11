@@ -15,12 +15,15 @@ object Dependencies {
 
   lazy val Http4sVersion = "0.21.7"
 
+  lazy val LogbackVersion = "1.2.3"
+
   lazy val pureconfig: Seq[ModuleID] = Seq(
   "com.github.pureconfig" %% "pureconfig" % PureconfigVersion,
   "com.github.pureconfig" %% "pureconfig-cats-effect" % PureconfigVersion
   )
 
 
+  lazy val logback = "ch.qos.logback"  %  "logback-classic" % LogbackVersion
 
   lazy val zio: Seq[ModuleID] = Seq(
     "dev.zio" %% "zio" % ZioVersion,

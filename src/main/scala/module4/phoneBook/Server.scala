@@ -25,10 +25,10 @@ import zio.Has
 object Server {
 
     type AppEnvironment = PhoneBookService.PhoneBookService with PhoneRecordRepository.PhoneRecordRepository with AddressRepository.AddressRepository with Configuration with 
-    Clock with Blocking with Liqui with LiquibaseService with Random with DBTransactor
+    Clock with Blocking with LiquibaseService.Liqui with LiquibaseService.LiquibaseService with Random with DataSource
 
 
-    val appEnvironment = Configuration.live >+> Blocking.live >+> DBTransactor.live >+> LiquibaseService.liquibaseLayer ++ 
+    val appEnvironment = Configuration.live >+> Blocking.live >+> zioDS >+> LiquibaseService.liquibaseLayer ++ 
     PhoneRecordRepository.live >+> AddressRepository.live >+> PhoneBookService.live ++ LiquibaseService.live
 
     type AppTask[A] = RIO[AppEnvironment, A]

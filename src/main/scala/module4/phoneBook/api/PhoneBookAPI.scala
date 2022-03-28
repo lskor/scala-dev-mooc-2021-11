@@ -14,12 +14,12 @@ import org.http4s.dsl.Http4sDsl
 import org.http4s.HttpRoutes
 import module4.phoneBook.dto._
 import module4.phoneBook.services.PhoneBookService
-import module4.phoneBook.db.DBTransactor
+import module4.phoneBook.db.DataSource
 import zio.random.Random
 
 
 
-class PhoneBookAPI[R <: PhoneBookService.PhoneBookService with DBTransactor with Random] {
+class PhoneBookAPI[R <: PhoneBookService.PhoneBookService with Random with DataSource] {
 
     type PhoneBookTask[A] =  RIO[R, A]
 

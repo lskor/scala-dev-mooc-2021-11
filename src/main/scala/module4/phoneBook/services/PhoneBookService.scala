@@ -10,14 +10,12 @@ import zio.IO
 import zio.macros.accessible
 import java.sql.DriverManager
 import module4.phoneBook.dao.repositories.{PhoneRecordRepository, AddressRepository}
-import doobie.free.resultset
-import module4.phoneBook.db.DBTransactor
+import module4.phoneBook.db.DataSource
+import module4.phoneBook.db
 import zio.interop.catz._
 import module4.phoneBook.dao.entities.PhoneRecord
 import zio.random.Random
-import doobie.quill.DoobieContext
 import io.getquill.{CompositeNamingStrategy2, Escape, Literal}
-import doobie.free.connection
 import module4.phoneBook.dao.entities.Address
 
 @accessible
@@ -26,43 +24,37 @@ object PhoneBookService {
      type PhoneBookService = Has[Service]
   
      trait Service{
-       def find(phone: String): ZIO[DBTransactor, Option[Throwable], (String, PhoneRecordDTO)]
-       def insert(phoneRecord: PhoneRecordDTO): RIO[DBTransactor with Random, String]
-       def update(id: String, addressId: String, phoneRecord: PhoneRecordDTO): RIO[DBTransactor, Unit]
-       def delete(id: String): RIO[DBTransactor, Unit]
+       def find(phone: String): ZIO[DataSource, Option[Throwable], (String, PhoneRecordDTO)]
+       def insert(phoneRecord: PhoneRecordDTO): RIO[DataSource with Random, String]
+       def update(id: String, addressId: String, phoneRecord: PhoneRecordDTO): RIO[DataSource, Unit]
+       def delete(id: String): RIO[DataSource, Unit]
      }
 
     class Impl(phoneRecordRepository: PhoneRecordRepository.Service, addressRepository: AddressRepository.Service) extends Service {
-      import doobie.implicits._
-       val dc: DoobieContext.Postgres[CompositeNamingStrategy2[Escape.type,Literal.type]] = DBTransactor.doobieContext
-       import dc._
-        def find(phone: String): ZIO[DBTransactor, Option[Throwable], (String, PhoneRecordDTO)] = for{
-          transactor <- DBTransactor.dbTransactor
-          result <- phoneRecordRepository.find(phone).transact(transactor).some
+       val ctx  = db.Ctx
+       import ctx._
+        def find(phone: String): ZIO[DataSource, Option[Throwable], (String, PhoneRecordDTO)] = for{
+          result <- phoneRecordRepository.find(phone).some
         } yield (result.id, PhoneRecordDTO.from(result))
 
-        def insert(phoneRecord: PhoneRecordDTO): RIO[DBTransactor with Random, String] = for{
-          transactor <- DBTransactor.dbTransactor
+        def insert(phoneRecord: PhoneRecordDTO): RIO[DataSource with Random, String] = for{
           uuid <- zio.random.nextUUID.map(_.toString())
           uuid2 <- zio.random.nextUUID.map(_.toString())
           address = Address(uuid, phoneRecord.zipCode, phoneRecord.address)
-          query = for{
-             _ <- addressRepository.insert(address)
-             _ <- phoneRecordRepository.insert(PhoneRecord(uuid2, phoneRecord.phone, phoneRecord.fio, address.id))
-                  
-          } yield ()
-         
-          _  <-  query.transact(transactor)
+          _ <- ctx.transaction(
+                  for{
+                    _ <- addressRepository.insert(address)
+                    _ <- phoneRecordRepository.insert(PhoneRecord(uuid2, phoneRecord.phone, phoneRecord.fio, address.id))
+                  } yield ()
+                )
         } yield uuid
         
-        def update(id: String, addressId: String,  phoneRecord: PhoneRecordDTO): RIO[DBTransactor, Unit] = for{
-            transactor <- DBTransactor.dbTransactor
-            _ <- phoneRecordRepository.update(PhoneRecord(id, phoneRecord.phone, phoneRecord.fio, addressId)).transact(transactor)
+        def update(id: String, addressId: String,  phoneRecord: PhoneRecordDTO): RIO[DataSource, Unit] = for{
+            _ <- phoneRecordRepository.update(PhoneRecord(id, phoneRecord.phone, phoneRecord.fio, addressId))
         } yield ()
         
-        def delete(id: String): RIO[DBTransactor, Unit] = for{
-            transactor <- DBTransactor.dbTransactor
-            _ <- phoneRecordRepository.delete(id).transact(transactor)
+        def delete(id: String): RIO[DataSource, Unit] = for{
+            _ <- phoneRecordRepository.delete(id)
         } yield ()
         
     }

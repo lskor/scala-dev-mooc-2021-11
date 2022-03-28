@@ -6,7 +6,7 @@ import zio.config.typesafe.TypesafeConfig
 
 package object configuration {
 
-  case class Config(api: Api, liquibase: LiquibaseConfig, db: DbConfig)
+  case class Config(api: Api, liquibase: LiquibaseConfig, db2: DbConfig)
   
   case class LiquibaseConfig(changeLog: String)
   case class Api(host: String, port: Int)

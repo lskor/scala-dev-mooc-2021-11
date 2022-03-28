@@ -1,7 +1,6 @@
 package module4.phoneBook
 
 import zio.Has
-import doobie.util.transactor.Transactor
 import liquibase.Liquibase
 import zio.Task
 import zio.RIO
@@ -16,27 +15,42 @@ import liquibase.resource.FileSystemResourceAccessor
 import liquibase.resource.ClassLoaderResourceAccessor
 import liquibase.resource.CompositeResourceAccessor
 import liquibase.database.jvm.JdbcConnection
-import doobie.quill.DoobieContext
 import io.getquill.NamingStrategy
 import io.getquill.Escape
 import io.getquill.Literal
 import scala.concurrent.ExecutionContext
 import zio._
-import doobie.hikari.HikariTransactor
 import cats.effect.Blocker
 import zio.blocking.Blocking
 import zio.macros.accessible
 import module4.phoneBook.configuration.DbConfig
+import io.getquill.PostgresZioJdbcContext
+import com.zaxxer.hikari.HikariConfig
+import io.getquill.JdbcContextConfig
+import io.getquill.util.LoadConfig
+import java.io.Closeable
+import com.zaxxer.hikari.HikariDataSource
+import io.getquill.context.ZioJdbc
+import io.getquill.CompositeNamingStrategy2
 
 package object db {
-  type DBTransactor = Has[Transactor[Task]]
 
-  type LiquibaseService = Has[LiquibaseService.Service]
+  type DataSource = Has[javax.sql.DataSource]
 
-  type Liqui = Has[Liquibase]
+  object Ctx extends PostgresZioJdbcContext(NamingStrategy(Escape, Literal))
+
+  def hikariDS: HikariDataSource = new JdbcContextConfig(LoadConfig("db")).dataSource
+
+  val zioDS: ZLayer[Any, Throwable, DataSource] = ZioJdbc.DataSourceLayer.fromDataSource(hikariDS)
+
+
 
   @accessible
   object LiquibaseService {
+
+    type LiquibaseService = Has[Service]
+
+    type Liqui = Has[Liquibase]
 
     trait Service {
       def performMigration: RIO[Liqui, Unit]
@@ -46,23 +60,22 @@ package object db {
 
       override def performMigration: RIO[Liqui, Unit] = liquibase.map(_.update("dev"))
     }
-
-    def mkLiquibase(config: Config, transactor: Transactor[Task]): ZManaged[Any, Throwable, Liquibase] = for {
-      connection <- transactor.connect(transactor.kernel).toManagedZIO
+     
+    def mkLiquibase(config: Config): ZManaged[DataSource, Throwable, Liquibase] = for {
+      ds <- ZIO.environment[DataSource].map(_.get).toManaged_
       fileAccessor <-  ZIO.effect(new FileSystemResourceAccessor()).toManaged_
       classLoader <- ZIO.effect(classOf[LiquibaseService].getClassLoader).toManaged_
       classLoaderAccessor <- ZIO.effect(new ClassLoaderResourceAccessor(classLoader)).toManaged_
       fileOpener <- ZIO.effect(new CompositeResourceAccessor(fileAccessor, classLoaderAccessor)).toManaged_
-      jdbcConn <- ZManaged.makeEffect(new JdbcConnection(connection))(c => c.close())
+      jdbcConn <- ZManaged.makeEffect(new JdbcConnection(ds.getConnection()))(c => c.close())
       liqui <- ZIO.effect(new Liquibase(config.liquibase.changeLog, fileOpener, jdbcConn)).toManaged_
     } yield liqui
 
 
-    val liquibaseLayer: ZLayer[DBTransactor with Configuration, Throwable, Liqui] = ZLayer.fromManaged(
+    val liquibaseLayer: ZLayer[Configuration with DataSource, Throwable, Liqui] = ZLayer.fromManaged(
       for {
         config <- zio.config.getConfig[Config].toManaged_
-        transactor <- DBTransactor.dbTransactor.toManaged_
-        liquibase <- mkLiquibase(config, transactor)
+        liquibase <- mkLiquibase(config)
       } yield (liquibase)
     )
 
@@ -71,31 +84,5 @@ package object db {
 
     val live: ULayer[LiquibaseService] = ZLayer.succeed(new Impl)
 
-  }
-
-  object DBTransactor {
-
-    val doobieContext = new DoobieContext.Postgres(NamingStrategy(Escape, Literal)) // Literal naming scheme
-
-    def mkTransactor(conf: configuration.DbConfig, connectEC: ExecutionContext, transactEC: ExecutionContext): Managed[Throwable, Transactor[Task]] =
-      HikariTransactor.newHikariTransactor[Task](
-        conf.driver,
-        conf.url,
-        conf.user,
-        conf.password,
-        connectEC,
-        Blocker.liftExecutionContext(transactEC)
-      ).toManagedZIO
-
-    val live: ZLayer[Configuration with Blocking, Throwable, DBTransactor] = ZLayer.fromManaged(
-      (for {
-        config <- zio.config.getConfig[Config].toManaged_
-        ec <- ZIO.descriptor.map(_.executor.asEC).toManaged_
-        blocingEC <- zio.blocking.blockingExecutor.map(_.asEC).toManaged_
-        transactor <- DBTransactor.mkTransactor(config.db, ec, blocingEC)
-      } yield transactor)
-    )
-
-    def dbTransactor: URIO[DBTransactor, Transactor[Task]] = ZIO.service[Transactor[Task]]
   }
 }
