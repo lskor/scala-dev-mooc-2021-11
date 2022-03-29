@@ -1,9 +1,15 @@
 package module3.zio_homework
 
+import java.nio.file.Paths
+
+import module3.zio_homework.config.AppConfig
+import pureconfig.ConfigSource
+import zio.Task
 import zio.random.nextBoolean
 import zio.test.Assertion.{equalTo, hasSize}
 import zio.test._
 import zio.test.environment.{TestConsole, TestEnvironment, TestRandom}
+import pureconfig.generic.auto._
 
 object ZIOHomework extends DefaultRunnableSpec {
 
@@ -50,9 +56,28 @@ object ZIOHomework extends DefaultRunnableSpec {
 		} yield assertCompletes
 	}
 
+	private def loadConfig(path: String): Task[AppConfig] =
+		Task.effect(ConfigSource.file(Paths.get(path)).loadOrThrow[AppConfig])
+
+	private lazy val loadDefaultConfig = testM("Load default config") {
+		loadConfigOrDefault(loadConfig("app.conf")).map(conf => assert(conf)(equalTo(defaultConfig)))
+	}
+
+	private lazy val failureLoadConfig = testM("Failure load config") {
+		val load = loadConfig("src/test/resource/failureApp.conf")
+		loadConfigOrDefault(load).map(conf => assert(conf)(equalTo(defaultConfig)))
+	}
+
+	private lazy val successfulLoadConfig = testM("Successful load config") {
+		val expectedConf = AppConfig("portal", "http://www.portal.com")
+		val load = loadConfig("src/test/resource/successApp.conf")
+		loadConfigOrDefault(load).map(conf => assert(conf)(equalTo(expectedConf)))
+	}
+
 	private lazy val guessProgramSuite = suite("Guess program suite") (win, wrongNumber, notNumber)
 	private lazy val doWhileSuite = suite("Do while suite") (iterateWhile)
+	private lazy val loadConfigSuite = suite("Load config suite") (loadDefaultConfig, failureLoadConfig, successfulLoadConfig)
 
 	override def spec: ZSpec[TestEnvironment, Any] =
-		suite("ZIO Homework")(guessProgramSuite, doWhileSuite)
+		suite("ZIO Homework")(guessProgramSuite, doWhileSuite, loadConfigSuite)
 }

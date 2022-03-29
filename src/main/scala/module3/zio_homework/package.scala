@@ -1,5 +1,6 @@
 package module3
 
+import module3.zio_homework.config.AppConfig
 import zio._
 import zio.console.Console
 import zio.random.Random
@@ -51,8 +52,10 @@ package object zio_homework {
    * Используйте эффект "load" из пакета config
    */
 
-  def loadConfigOrDefault = ???
+  lazy val defaultConfig = AppConfig("default", "http://www.default.com")
 
+  def loadConfigOrDefault(load: Task[AppConfig]): ZIO[Any, Nothing, AppConfig] =
+    load.orElse(Task.succeed(defaultConfig))
 
   /**
    * 4. Следуйте инструкциям ниже для написания 2-х ZIO программ,
