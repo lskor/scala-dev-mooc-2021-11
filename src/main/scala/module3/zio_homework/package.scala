@@ -42,7 +42,8 @@ package object zio_homework {
    * 
    */
 
-  def doWhile = ???
+    def doWhile[R, E](effect: ZIO[R, E, Boolean]): ZIO[R, E, Unit]=
+        effect.flatMap(cond => if(cond) ZIO.succeed() else doWhile(effect))
 
   /**
    * 3. Реализовать метод, который безопасно прочитает конфиг из файла, а в случае ошибки вернет дефолтный конфиг

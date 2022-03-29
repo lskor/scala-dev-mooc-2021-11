@@ -3,12 +3,12 @@ package module3.zio_homework
 import module3.zio_homework
 import zio.clock.Clock
 import zio.console.Console
-import zio.random.Random
+import zio.random.{Random, nextBoolean}
 import zio.{ExitCode, URIO}
 
 
 object App {
-  def main(args: Array[String]): Unit = zio.Runtime.default.unsafeRun(zio_homework.guessProgram)
+  def main(args: Array[String]): Unit = zio.Runtime.default.unsafeRun(zio_homework.doWhile(nextBoolean))
 }
 
 object ZioHomeWorkApp extends zio.App {

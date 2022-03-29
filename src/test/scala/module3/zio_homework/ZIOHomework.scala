@@ -1,5 +1,6 @@
 package module3.zio_homework
 
+import zio.random.nextBoolean
 import zio.test.Assertion.{equalTo, hasSize}
 import zio.test._
 import zio.test.environment.{TestConsole, TestEnvironment, TestRandom}
@@ -42,8 +43,16 @@ object ZIOHomework extends DefaultRunnableSpec {
 		}
 	}
 
+	private lazy val iterateWhile = testM("Iterate while") {
+		for{
+			_ <- TestRandom.feedBooleans(false, false, true)
+			_ <- doWhile(nextBoolean)
+		} yield assertCompletes
+	}
+
 	private lazy val guessProgramSuite = suite("Guess program suite") (win, wrongNumber, notNumber)
+	private lazy val doWhileSuite = suite("Do while suite") (iterateWhile)
 
 	override def spec: ZSpec[TestEnvironment, Any] =
-		suite("ZIO Homework")(guessProgramSuite)
+		suite("ZIO Homework")(guessProgramSuite, doWhileSuite)
 }
