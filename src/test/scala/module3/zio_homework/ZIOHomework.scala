@@ -5,11 +5,15 @@ import java.nio.file.Paths
 import module3.zio_homework.config.AppConfig
 import pureconfig.ConfigSource
 import zio.Task
+import zio.duration.durationInt
 import zio.random.nextBoolean
 import zio.test.Assertion.{equalTo, hasSize}
+import zio.test.TestAspect.timeout
 import zio.test._
-import zio.test.environment.{TestConsole, TestEnvironment, TestRandom}
+import zio.test.environment.{TestClock, TestConsole, TestEnvironment, TestRandom}
 import pureconfig.generic.auto._
+
+import scala.language.postfixOps
 
 object ZIOHomework extends DefaultRunnableSpec {
 
@@ -74,10 +78,24 @@ object ZIOHomework extends DefaultRunnableSpec {
 		loadConfigOrDefault(load).map(conf => assert(conf)(equalTo(expectedConf)))
 	}
 
-	private lazy val guessProgramSuite = suite("Guess program suite") (win, wrongNumber, notNumber)
-	private lazy val doWhileSuite = suite("Do while suite") (iterateWhile)
-	private lazy val loadConfigSuite = suite("Load config suite") (loadDefaultConfig, failureLoadConfig, successfulLoadConfig)
+	private lazy val effectsApp = testM("Effects application") {
+		for{
+			_ <- TestClock.adjust(1 seconds)
+			_ <- TestRandom.feedInts(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+			_ <- app
+			result <- TestConsole.output
+		} yield {
+			assert(result)(hasSize(equalTo(1))) &&
+			assert(result(0))(equalTo("sum = 45\n"))
+		}
+	} @@ timeout(15.seconds)
+
+
+	private lazy val guessProgramSuite = suite("Guess program suite")(win, wrongNumber, notNumber)
+	private lazy val doWhileSuite = suite("Do while suite")(iterateWhile)
+	private lazy val loadConfigSuite = suite("Load config suite")(loadDefaultConfig, failureLoadConfig, successfulLoadConfig)
+	private lazy val effectsAppSuite = suite("Effects application suite")(effectsApp)
 
 	override def spec: ZSpec[TestEnvironment, Any] =
-		suite("ZIO Homework")(guessProgramSuite, doWhileSuite, loadConfigSuite)
+		suite("ZIO Homework")(/*guessProgramSuite, doWhileSuite, loadConfigSuite,*/ effectsAppSuite)
 }
