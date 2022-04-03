@@ -9,7 +9,7 @@ import zio.{ExitCode, URIO}
 
 object App {
   def main(args: Array[String]): Unit =
-    zio.Runtime.default.unsafeRun(zio_homework.printEffectRunningTimeApp)
+    zio.Runtime.default.unsafeRun(zio_homework.printEffectRunningTimeAppSpeedUp)
 }
 
 object ZioHomeWorkApp extends zio.App {

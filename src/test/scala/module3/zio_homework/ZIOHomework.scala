@@ -80,9 +80,10 @@ object ZIOHomework extends DefaultRunnableSpec {
 
 	private lazy val effectsApp = testM("Effects application") {
 		for{
-			_ <- TestClock.adjust(1 seconds)
 			_ <- TestRandom.feedInts(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
-			_ <- app
+			fiber <- app.fork
+			_ <- TestClock.adjust(10 seconds)
+			_ <- fiber.join
 			result <- TestConsole.output
 		} yield {
 			assert(result)(hasSize(equalTo(1))) &&
@@ -90,12 +91,24 @@ object ZIOHomework extends DefaultRunnableSpec {
 		}
 	} @@ timeout(15.seconds)
 
+	private lazy val effectsAppSpeedUp = testM("Effects application speedup") {
+		for{
+			_ <- TestRandom.feedInts(9, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+			fiber <- appSpeedUp.fork
+			_ <- TestClock.adjust(1 seconds)
+			_ <- fiber.join
+			result <- TestConsole.output
+		} yield {
+			assert(result)(hasSize(equalTo(1))) &&
+			assert(result(0))(equalTo("sum = 54\n"))
+		}
+	} @@ timeout(15.seconds)
 
 	private lazy val guessProgramSuite = suite("Guess program suite")(win, wrongNumber, notNumber)
 	private lazy val doWhileSuite = suite("Do while suite")(iterateWhile)
 	private lazy val loadConfigSuite = suite("Load config suite")(loadDefaultConfig, failureLoadConfig, successfulLoadConfig)
-	private lazy val effectsAppSuite = suite("Effects application suite")(effectsApp)
+	private lazy val effectsAppSuite = suite("Effects application suite")(effectsApp, effectsAppSpeedUp)
 
 	override def spec: ZSpec[TestEnvironment, Any] =
-		suite("ZIO Homework")(/*guessProgramSuite, doWhileSuite, loadConfigSuite,*/ effectsAppSuite)
+		suite("ZIO Homework")(guessProgramSuite, doWhileSuite, loadConfigSuite, effectsAppSuite)
 }
