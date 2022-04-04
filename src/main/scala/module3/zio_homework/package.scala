@@ -5,6 +5,8 @@ import zio.duration.durationInt
 import scala.language.postfixOps
 
 import module3.zio_homework.config.AppConfig
+import module3.zio_homework.printing.Printing
+import module3.zio_homework.printing.Printing.ptrRunningTime
 import zio._
 import zio.clock.Clock
 import zio.console.{Console, putStrLn}
@@ -122,13 +124,13 @@ package object zio_homework {
      * 
      */
 
-  lazy val appWithTimeLogg = ???
+  lazy val appWithTimeLogg: ZIO[Printing with Console with Clock with Random, Nothing, Unit] = ptrRunningTime(app)
 
   /**
     * 
     * Подготовьте его к запуску и затем запустите воспользовавшись ZioHomeWorkApp
     */
 
-  lazy val runApp = ???
+  lazy val runApp = appWithTimeLogg.provideSomeLayer[Console with Clock with Random](Printing.live)
   
 }
