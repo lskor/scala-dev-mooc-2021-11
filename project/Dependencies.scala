@@ -8,7 +8,7 @@ object Dependencies {
   lazy val kindProjector = "org.typelevel" %% "kind-projector" % KindProjectorVersion
   lazy val ZioVersion = "1.0.4"
   lazy val PureconfigVersion = "0.12.3"
-  lazy val LiquibaseVersion = "3.4.2"
+  lazy val LiquibaseVersion = "3.5.0"
 
   lazy val PostgresVersion = "42.2.8"
   lazy val CirceVersion = "0.13.0"
